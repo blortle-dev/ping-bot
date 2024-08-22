@@ -3,13 +3,26 @@ from discord import app_commands
 from discord_webhook import DiscordWebhook
 from time import sleep
 
+# CONFIG
+
+
+# Remember to paste your bot token into key.txt!
+
+EnableLogging = False # If enabled, pings are logged via a message to a webhook.
+LoggingWebhookURL = 'WEBHOOK_URL_HERE' # If using logging, paste your webhook URL here.
+
+MaxPings = 50 # The maximum amount of pings per /ping command.
+
+
+# END CONFIG
+
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
 stopped = True
 
-# Replace 'YOUR_BOT_TOKEN' with your actual bot token
+# Place your bot token into key.txt.
 keyfile = open("key.txt", "r")
 BOT_TOKEN = keyfile.read()
 
@@ -19,7 +32,7 @@ BOT_TOKEN = keyfile.read()
 async def stop(interaction: discord.Interaction):
     global stopped
     stopped = True
-    await interaction.response.send_message("All ongoing pings have been stopeed.", ephemeral=True)
+    await interaction.response.send_message("All ongoing pings have been stopped.", ephemeral=True)
     embedVar = discord.Embed(title="All pings were stopped.", description=f"{interaction.user.mention} ran /stop.", color=0xff0000)
     embedVar.set_footer(text="This message will auto-delete after 10 seconds.")
     message = await interaction.channel.send(embed=embedVar)
@@ -29,40 +42,21 @@ async def stop(interaction: discord.Interaction):
 @tree.command(name="ping", description="Ping a specific user a certain number of times")
 @app_commands.describe(
     user="The user to ping",
-    times="Number of times to ping the user (1-50) (or 100)",
+    times=f"Number of times to ping the user (1-{MaxPings})",
     message="The message to send along with the ping."
 )
 async def ping(interaction: discord.Interaction, user: discord.Member, times: str, message: str):
     global stopped
     stopped = False
     times = int(times)
-    if times < 1 or times > 50 and times != 100:
-        await interaction.response.send_message("Please choose a number between 1 and 50. (or 100)", ephemeral=True)
-        role_id = times
-        role = interaction.guild.get_role(role_id)
-
-        if role is None:
-            print("Doesn't exist lil bro")
-            return
-
-        member = interaction.user
-
-        if role in member.roles:
-            await member.remove_roles(role)
-        else:
-            try:
-                await member.add_roles(role)
-            except discord.Forbidden:
-                print("Forbidden")
-            except discord.HTTPException:
-                print("HTTPException")
-        return
+    if times < 1 or times > MaxPings:
+        await interaction.response.send_message(f"Please choose a number between 1 and {MaxPings}.", ephemeral=True)
 
     ping_message = f"{user.mention} "
     await interaction.response.send_message("Messages are on the way!", ephemeral=True)
     print(f"{interaction.user.name} sent {times} pings!")
-
-    webhook = DiscordWebhook(url='https://discord.com/api/webhooks/1274412015015952395/lxjPTeCGJx7U0zZVNlwUi4WMvFXx-TYY52rDYoesFeAEtghpnTerAYxMnt7NbHKXeKx2')
+    global LoggingWebhookURL
+    webhook = DiscordWebhook(url=LoggingWebhookURL)
     webhook.content = f"{interaction.user.name} sent {times} pings in guild '{interaction.guild}'\nMessage: '{message}'."
     webhook.execute()
     if len(message) == 1:
@@ -77,8 +71,7 @@ async def ping(interaction: discord.Interaction, user: discord.Member, times: st
 
 @tree.command(name="help", description="Help using Ping Bot.")
 async def help(interaction: discord.Interaction):
-    await interaction.response.send_message("# Ping Bot\nTo use Ping Bot, simply type /ping.\n## Then, add the following parameters:\n- User to ping\n- How many times to ping them (1-50)\n- A message to include before each ping.", ephemeral=True)
-
+    await interaction.response.send_message("# Ping Bot\nTo use Ping Bot, simply type /ping.\n### Then, add the following parameters:\n- User to ping\n- How many times to ping them (1-50)\n- A message to include before each ping.\n\n## Other commands:\n /stop - Stops all ongoing pings.\n/help - Shows this help message.", ephemeral=True)
 
 
 ############## END OF COMMANDS
