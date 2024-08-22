@@ -55,10 +55,11 @@ async def ping(interaction: discord.Interaction, user: discord.Member, times: st
     ping_message = f"{user.mention} "
     await interaction.response.send_message("Messages are on the way!", ephemeral=True)
     print(f"{interaction.user.name} sent {times} pings!")
-    global LoggingWebhookURL
-    webhook = DiscordWebhook(url=LoggingWebhookURL)
-    webhook.content = f"{interaction.user.name} sent {times} pings in guild '{interaction.guild}'\nMessage: '{message}'."
-    webhook.execute()
+    if EnableLogging == True:
+        global LoggingWebhookURL
+        webhook = DiscordWebhook(url=LoggingWebhookURL)
+        webhook.content = f"{interaction.user.name} sent {times} pings in guild '{interaction.guild}'\nMessage: '{message}'."
+        webhook.execute()
     if len(message) == 1:
         message = f"{ping_message}"
     else:
