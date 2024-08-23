@@ -1,6 +1,6 @@
 # Ping Bot
 
-Ping Bot is an open-sourced bot to easily send pings in bulk.
+Ping Bot is an open-sourced bot to easily send pings in bulk.<br />
 Made as a joke. Have fun.
 
 ## Setup
